@@ -1,14 +1,29 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const Signup = () => {
+const Signup = ({setUser}) => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const navigate = useNavigate();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post("http://localhost:5000/user/register", formData);
+    console.log("Signup success:", res.data);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Signup Data:", formData);
-    // We will add the Axios POST request here later!
-  };
+    // Reset form after capturing response
+    setFormData({ username: '', email: '', password: '' });
+
+    // Take username from backend, not formData
+    const newUser = { _id: res.data._id,username: res.data.username, email: res.data.email };
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    setUser(newUser); // update Navbar immediately
+    navigate('/');
+  } catch (err) {
+    console.error("Signup error:", err.response?.data || err.message);
+  }
+};
 
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center py-12 px-4">
@@ -22,6 +37,7 @@ const Signup = () => {
             <input 
               type="text" 
               required
+              value={formData.username}
               className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
               onChange={(e) => setFormData({...formData, username: e.target.value})}
             />
@@ -31,6 +47,7 @@ const Signup = () => {
             <input 
               type="email" 
               required
+              value={formData.email}
               className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
@@ -40,6 +57,7 @@ const Signup = () => {
             <input 
               type="password" 
               required
+              value={formData.password}
               className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />

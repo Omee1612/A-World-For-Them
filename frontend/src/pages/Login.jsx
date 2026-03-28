@@ -1,13 +1,24 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const Login = () => {
+const Login = ({setUser}) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
-    // We will add the Axios POST request here later!
+    try {
+      const res = await axios.post("http://localhost:5000/user/login", formData);
+      console.log("Login success:", res.data);
+      setFormData({ email: '', password: '' });
+     localStorage.setItem('token', res.data.token);
+       const loggedInUser = { _id: res.data._id,username: res.data.username, email: res.data.email };
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      setUser(loggedInUser); // update Navbar immediately
+     navigate('/');
+    } catch (err) {
+      console.error("Login error:", err.response?.data || err.message);
+    }
   };
 
   return (
@@ -22,6 +33,7 @@ const Login = () => {
             <input 
               type="email" 
               required
+              value={formData.email}
               className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
@@ -31,6 +43,7 @@ const Login = () => {
             <input 
               type="password" 
               required
+              value={formData.password}
               className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
