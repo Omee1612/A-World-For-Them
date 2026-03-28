@@ -207,7 +207,6 @@ exports.addChatMessage = async (req, res) => {
   }
 };
 
-// Delete adoption post
 exports.deletePost = async (req, res) => {
   try {
     const postId = req.params.id;

@@ -19,7 +19,13 @@ import InboxIcon from './InboxIcon';
           A World For Them 🐾
         </Link>
 
-        <div className="flex items-center space-x-4 font-medium">
+        <div className="flex items-center space-x-6 font-medium">
+          <div className="hidden md:flex items-center gap-4 text-stone-700">
+            <Link to="/" className="hover:text-orange-600">Home</Link>
+            <Link to="/adoption" className="hover:text-orange-600">Adoptions</Link>
+            <Link to="/veterinary" className="hover:text-orange-600">Veterinary Care</Link>
+            <Link to="/about" className="hover:text-orange-600">About</Link>
+          </div>
           {user && <InboxIcon user={user} />}
           {user ? (
             <div className="relative">
