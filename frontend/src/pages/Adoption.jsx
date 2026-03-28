@@ -1,34 +1,61 @@
-const Adoption = () => {
-  // Dummy data: Later, replace this with a fetch call to your backend
-  const cats = [
-    { id: 1, name: "Luna", age: "2 Years", trait: "Cuddly & Shy", img: "/assets/cat1.jpg" },
-    { id: 2, name: "Oliver", age: "6 Months", trait: "Playful Energy", img: "/assets/cat2.jpg" },
-    { id: 3, name: "Milo", age: "4 Years", trait: "Calm Observer", img: "/assets/dog1.jpg" },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import AdoptionCard from "./AdoptionCard";
+import CreateAdoptionModal from "./CreateAdoptionModal";
+
+const Adoption = ({ currentUser }) => {
+  const [posts, setPosts] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  const fetchPosts = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/adoptions");
+      setPosts(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const handleOpenModal = () => {
+    if (!localStorage.getItem("token")) {
+      return alert("Please login first!");
+    }
+    setOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-amber-50/50 py-16 px-4">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-bold text-stone-800 mb-4 text-center">Looking for a Home</h2>
-        <p className="text-center text-stone-600 mb-12 max-w-2xl mx-auto">
-          These beautiful souls are fully vaccinated, neutered/spayed, and waiting for a family to call their own.
-        </p>
-        
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h2 className="text-4xl font-bold text-stone-800">
+              Animals Looking for a Home
+            </h2>
+            <p className="text-stone-600 mt-2">
+              Help stray animals find a loving family.
+            </p>
+          </div>
+
+          <button
+            onClick={handleOpenModal}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg"
+          >
+            Create Adoption Post
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {cats.map((cat) => (
-            <div key={cat.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-              <img src={cat.img} alt={cat.name} className="w-full h-56 object-cover" />
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-orange-600">{cat.name}</h3>
-                <p className="text-stone-500 text-sm mt-1">{cat.age} • {cat.trait}</p>
-                <button className="mt-4 w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold py-2 rounded-lg transition-colors">
-                  Learn More
-                </button>
-              </div>
-            </div>
+          {posts.map((post) => (
+            <AdoptionCard key={post._id} post={post} currentUser={currentUser} refresh={fetchPosts} />
           ))}
         </div>
       </div>
+
+      {open && <CreateAdoptionModal closeModal={() => setOpen(false)} refresh={fetchPosts} />}
     </div>
   );
 };
