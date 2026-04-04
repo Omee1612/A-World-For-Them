@@ -1,5 +1,13 @@
 {
-  "dependencies": {
-    "axios": "^1.13.6"
+  "name": "straypaws",
+  "version": "1.0.0",
+  "description": "StrayPaws - Stray Animal Adoption & Vet Care Platform",
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "start": "cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
 }
