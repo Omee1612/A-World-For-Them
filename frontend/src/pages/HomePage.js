@@ -21,7 +21,7 @@ const HomePage = () => {
   ];
 
   const testimonials = [
-    { name:'Sarah K.', text:'Found my amazing cat Luna through A world for them. The process was so smooth!', avatar:'👩' },
+    { name:'Sarah K.', text:'Found my amazing cat Luna through StrayPaws. The process was so smooth!', avatar:'👩' },
     { name:'Rahul M.', text:'Posted about a stray dog I found and he got adopted within 3 days. Amazing platform!', avatar:'👨' },
     { name:'Nadia H.', text:'The vet booking feature is so convenient. My rescue cat got her first checkup easily.', avatar:'👩‍🦱' },
   ];
@@ -117,7 +117,7 @@ const HomePage = () => {
       <section style={{ padding:'80px 0', background:'var(--warm-white)' }}>
         <div className="page-container">
           <div style={{ textAlign:'center', marginBottom:56 }}>
-            <h2 style={{ fontSize:'clamp(1.75rem, 4vw, 2.5rem)', marginBottom:12 }}>How A world for them Works</h2>
+            <h2 style={{ fontSize:'clamp(1.75rem, 4vw, 2.5rem)', marginBottom:12 }}>How StrayPaws Works</h2>
             <p style={{ color:'var(--slate)', fontSize:'1rem', maxWidth:520, margin:'0 auto' }}>
               A simple, secure platform designed to bring strays and humans together
             </p>

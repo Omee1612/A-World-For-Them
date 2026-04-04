@@ -70,7 +70,7 @@ const Navbar = () => {
           }}>🐾</div>
           <div>
             <span style={{ fontFamily:'Playfair Display, serif', fontWeight: 700, fontSize:'1.25rem', color: 'var(--charcoal)' }}>
-              A World<span style={{ color: 'var(--terracotta)' }}> For Them</span>
+              Stray<span style={{ color: 'var(--terracotta)' }}>Paws</span>
             </span>
             <div style={{ fontSize:'0.65rem', color:'var(--slate)', letterSpacing:'0.08em', textTransform:'uppercase', marginTop:-2 }}>
               Find a Home · Give a Home

@@ -74,7 +74,7 @@ const Footer = () => (
 
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
         <p style={{ fontSize:'0.8rem', color:'#666' }}>
-          © {new Date().getFullYear()} A world for them. Made with ❤️ for animals everywhere.
+          © {new Date().getFullYear()} StrayPaws. Made with ❤️ for animals everywhere.
         </p>
         <p style={{ fontSize:'0.8rem', color:'#555' }}>
           🐾 Every animal deserves a loving home

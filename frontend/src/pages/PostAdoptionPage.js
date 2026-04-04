@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import ImageUploader from '../components/ImageUploader';
 
 const PERSONALITY_OPTIONS = ['friendly','playful','calm','energetic','shy','protective','good-with-kids','good-with-pets','indoor','outdoor'];
 
@@ -27,14 +28,6 @@ const PostAdoptionPage = () => {
       ...p,
       personality: p.personality.includes(trait) ? p.personality.filter(t => t !== trait) : [...p.personality, trait],
     }));
-  };
-
-  const handlePhotoUrl = (e) => {
-    const url = e.target.value.trim();
-    if (url && !form.photos.includes(url)) {
-      setForm(p => ({ ...p, photos: [...p.photos, url] }));
-      e.target.value = '';
-    }
   };
 
   const handleSubmit = async () => {
@@ -245,32 +238,11 @@ const PostAdoptionPage = () => {
             <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:24 }}>
               <h3>Photos & Publish</h3>
 
-              <div className="form-group">
-                <label>Add Photo URLs</label>
-                <p style={{ fontSize:'0.8rem', color:'var(--slate)', marginBottom:10 }}>
-                  Paste image URLs (from Imgur, Google Drive, etc.) to add photos
-                </p>
-                <div style={{ display:'flex', gap:8 }}>
-                  <input id="photoInput" className="form-control" placeholder="https://..." />
-                  <button type="button" onClick={() => handlePhotoUrl({ target: document.getElementById('photoInput') })} className="btn-forest" style={{ whiteSpace:'nowrap', padding:'10px 20px' }}>
-                    Add Photo
-                  </button>
-                </div>
-                {form.photos.length > 0 && (
-                  <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginTop:12 }}>
-                    {form.photos.map((url, i) => (
-                      <div key={i} style={{ position:'relative' }}>
-                        <img src={url} alt="" style={{ width:80, height:80, objectFit:'cover', borderRadius:8, border:'2px solid var(--border)' }} />
-                        <button onClick={() => setForm(p => ({ ...p, photos: p.photos.filter((_, j) => j !== i) }))} style={{
-                          position:'absolute', top:-6, right:-6, width:20, height:20,
-                          background:'#c62828', color:'white', border:'none', borderRadius:'50%',
-                          fontSize:'0.7rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ImageUploader
+                photos={form.photos}
+                onChange={(urls) => set('photos', urls)}
+                maxPhotos={5}
+              />
 
               {/* Summary */}
               <div style={{ background:'var(--cream)', borderRadius:'var(--radius-md)', padding:20 }}>

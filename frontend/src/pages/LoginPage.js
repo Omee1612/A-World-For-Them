@@ -76,7 +76,7 @@ const LoginPage = () => {
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ width:56, height:56, background:'linear-gradient(135deg, var(--terracotta), var(--ochre))', borderRadius:16, margin:'0 auto 12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, boxShadow:'0 4px 16px rgba(196,99,58,0.3)' }}>🐾</div>
           <h1 style={{ fontSize: '1.75rem', marginBottom: 6 }}>Welcome Back</h1>
-          <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Sign in to your A world for them account</p>
+          <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Sign in to your StrayPaws account</p>
         </div>
 
         <div style={{ background:'white', borderRadius:'var(--radius-xl)', padding:36, boxShadow:'var(--shadow-lg)', border:'1px solid var(--border)' }}>

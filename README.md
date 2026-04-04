@@ -81,7 +81,19 @@ JWT_SECRET=your_super_secret_key_here_make_it_long
 JWT_EXPIRE=7d
 NODE_ENV=development
 CLIENT_URL=http://localhost:3000
+
+# Cloudinary — sign up free at cloudinary.com
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
+
+#### Getting your Cloudinary credentials:
+1. Sign up free at [cloudinary.com](https://cloudinary.com)
+2. Go to your **Dashboard**
+3. Copy **Cloud Name**, **API Key**, and **API Secret** into `.env`
+
+That's it — the backend handles all uploads. Images are stored in Cloudinary under the `straypaws/adoptions/` folder, auto-compressed and served as WebP where supported.
 
 ### 3. Run in Development
 
