@@ -44,7 +44,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'StrayPaws API running' }));
+app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'AWFT API running' }));
 
 // Socket.IO for real-time chat
 const activeUsers = new Map();

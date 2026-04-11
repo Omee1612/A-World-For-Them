@@ -20,7 +20,7 @@ const baseTemplate = (content) => `
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StrayPaws</title>
+  <title>A World For Them</title>
 </head>
 <body style="margin:0;padding:0;background:#f5ede0;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5ede0;padding:40px 20px;">
@@ -44,10 +44,10 @@ const baseTemplate = (content) => `
         <!-- Footer -->
         <tr><td style="padding:24px 0;text-align:center;">
           <p style="margin:0;color:#999;font-size:12px;">
-            © ${new Date().getFullYear()} StrayPaws · Every animal deserves a loving home 🐾
+            © ${new Date().getFullYear()} A World For Them · Every animal deserves a loving home 🐾
           </p>
           <p style="margin:6px 0 0;color:#bbb;font-size:11px;">
-            You're receiving this because you have a StrayPaws account.
+            You're receiving this because you have a AWFT account.
           </p>
         </td></tr>
 
@@ -87,7 +87,7 @@ const sendEmail = async ({ to, subject, html }) => {
   try {
     const transporter = createTransporter();
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `StrayPaws <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `AWFT <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
@@ -106,9 +106,9 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 // 1. Welcome email after registration
 const sendWelcomeEmail = async (user) => {
   const html = baseTemplate(`
-    <h2 style="margin:0 0 8px;color:#1a1a2e;font-size:22px;">Welcome to StrayPaws, ${user.name}! 🎉</h2>
+    <h2 style="margin:0 0 8px;color:#1a1a2e;font-size:22px;">Welcome to A World For Them, ${user.name}! 🎉</h2>
     <p style="color:#666;line-height:1.7;margin:0 0 20px;">
-      We're so glad you're here. StrayPaws is a community built on compassion — connecting stray animals with the loving homes they deserve.
+      We're so glad you're here. A world for them is a community built on compassion — connecting stray animals with the loving homes they deserve.
     </p>
     <div style="background:#fdf6ec;border-radius:12px;padding:20px;margin:20px 0;">
       <p style="margin:0 0 12px;font-weight:700;color:#2d2d2d;">Here's what you can do:</p>
@@ -123,7 +123,7 @@ const sendWelcomeEmail = async (user) => {
     </p>
   `);
 
-  await sendEmail({ to: user.email, subject: '🐾 Welcome to StrayPaws!', html });
+  await sendEmail({ to: user.email, subject: '🐾 Welcome to AWFT!', html });
 };
 
 // 2. Someone requested to adopt your animal
@@ -220,7 +220,7 @@ const sendAdoptionCompleteEmail = async ({ posterEmail, posterName, requesterEma
       <p style="margin:0;color:#c4633a;font-weight:700;font-size:16px;">Thank you for making a difference.</p>
     </div>
     <p style="color:#666;line-height:1.7;">
-      If you know of other strays that need help, please don't hesitate to post them on StrayPaws.
+      If you know of other strays that need help, please don't hesitate to post them here.
     </p>
     ${emailButton('Post Another Stray', `${CLIENT_URL}/post-adoption`)}
   `);
@@ -255,7 +255,7 @@ const sendAppointmentConfirmationEmail = async ({ userEmail, userName, animalNam
     </div>
     <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:16px;margin:16px 0;">
       <p style="margin:0;color:#e65100;font-size:13px;font-weight:600;">📍 Clinic Location</p>
-      <p style="margin:6px 0 0;color:#555;font-size:13px;">StrayPaws Vet Center · Road 4, Dhanmondi, Dhaka 1205</p>
+      <p style="margin:6px 0 0;color:#555;font-size:13px;">AWFT Vet Center · Road 4, Dhanmondi, Dhaka 1205</p>
     </div>
     <p style="color:#666;font-size:13px;line-height:1.7;">
       Please arrive 10 minutes early. If you need to cancel or reschedule, please do so at least 24 hours in advance from your dashboard.
@@ -291,7 +291,7 @@ const sendAccountBannedEmail = async ({ userEmail, userName, reason }) => {
   const html = baseTemplate(`
     <h2 style="margin:0 0 8px;color:#c62828;font-size:22px;">Account Suspended</h2>
     <p style="color:#666;line-height:1.7;margin:0 0 20px;">
-      Hi <strong>${userName}</strong>, your StrayPaws account has been suspended by an administrator.
+      Hi <strong>${userName}</strong>, your AWFT account has been suspended by an administrator.
     </p>
     ${reason ? `
     <div style="background:#ffebee;border:1px solid #ffcdd2;border-radius:10px;padding:16px;margin:16px 0;">
@@ -303,7 +303,7 @@ const sendAccountBannedEmail = async ({ userEmail, userName, reason }) => {
     </p>
   `);
 
-  await sendEmail({ to: userEmail, subject: 'Your StrayPaws account has been suspended', html });
+  await sendEmail({ to: userEmail, subject: 'Your AWFT account has been suspended', html });
 };
 
 // 9. Admin: post removed notification

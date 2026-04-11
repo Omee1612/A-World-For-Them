@@ -44,6 +44,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '/adopt', label: 'Adopt', icon: '🐾' },
     { path: '/vet-care', label: 'Vet Care', icon: '🏥' },
+    { path: '/carbon', label: 'Carbon', icon: '🌍' },
   ];
 
   return (
@@ -70,7 +71,7 @@ const Navbar = () => {
           }}>🐾</div>
           <div>
             <span style={{ fontFamily:'Playfair Display, serif', fontWeight: 700, fontSize:'1.25rem', color: 'var(--charcoal)' }}>
-              A World<span style={{ color: 'var(--terracotta)' }}> For Them</span>
+              Stray<span style={{ color: 'var(--terracotta)' }}>Paws</span>
             </span>
             <div style={{ fontSize:'0.65rem', color:'var(--slate)', letterSpacing:'0.08em', textTransform:'uppercase', marginTop:-2 }}>
               Find a Home · Give a Home

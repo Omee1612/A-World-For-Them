@@ -17,7 +17,7 @@ const Footer = () => (
               borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18,
             }}>🐾</div>
             <span style={{ fontFamily:'Playfair Display, serif', fontWeight:700, fontSize:'1.2rem', color:'white' }}>
-              A World<span style={{ color:'var(--terracotta-light)' }}> For Them</span>
+              Stray<span style={{ color:'var(--terracotta-light)' }}>Paws</span>
             </span>
           </div>
           <p style={{ fontSize:'0.875rem', lineHeight:1.7, maxWidth:260 }}>
@@ -42,6 +42,7 @@ const Footer = () => (
             { to:'/adopt', label:'Find a Pet' },
             { to:'/post-adoption', label:'Post a Stray' },
             { to:'/vet-care', label:'Vet Care' },
+            { to:'/carbon', label:'🌍 Carbon Footprint' },
             { to:'/dashboard', label:'Dashboard' },
           ]},
           { title:'Support', links:[
@@ -74,7 +75,7 @@ const Footer = () => (
 
       <div style={{ borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
         <p style={{ fontSize:'0.8rem', color:'#666' }}>
-          © {new Date().getFullYear()} A World For Them. Made with ❤️ for animals everywhere.
+          © {new Date().getFullYear()} StrayPaws. Made with ❤️ for animals everywhere.
         </p>
         <p style={{ fontSize:'0.8rem', color:'#555' }}>
           🐾 Every animal deserves a loving home

@@ -12,6 +12,7 @@ import VetCarePage from './pages/VetCarePage';
 import ChatPage from './pages/ChatPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboard from './pages/AdminDashboard';
+import CarbonPage from './pages/CarbonPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import './index.css';
@@ -41,6 +42,7 @@ const AppContent = () => {
             <Route path="/chat/:roomId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/carbon" element={<CarbonPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
