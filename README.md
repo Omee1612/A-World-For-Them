@@ -1,4 +1,4 @@
-# 🐾 StrayPaws — Stray Animal Adoption & Vet Care Platform
+# 🐾 A World For Them — Stray Animal Adoption & Vet Care Platform
 
 A full-stack MERN application connecting stray animals with loving homes, featuring real-time chat, adoption management, and veterinary care booking.
 
@@ -7,7 +7,7 @@ A full-stack MERN application connecting stray animals with loving homes, featur
 ## 📁 Project Structure
 
 ```
-straypaws/
+A World For Them/
 ├── backend/
 │   ├── middleware/
 │   │   └── auth.js              # JWT authentication middleware
