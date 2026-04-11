@@ -2,14 +2,20 @@ const express = require('express');
 const router = express.Router();
 const Adoption = require('../models/Adoption');
 const ChatRoom = require('../models/ChatRoom');
+const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const {
+  sendAdoptionRequestEmail,
+  sendRequestAcceptedEmail,
+  sendRequestRejectedEmail,
+  sendAdoptionCompleteEmail,
+} = require('../config/email');
 
-// @GET /api/adoptions - Get all available adoptions with filters
+// @GET /api/adoptions
 router.get('/', async (req, res) => {
   try {
     const { species, status, city, search, urgency, page = 1, limit = 12 } = req.query;
     const filter = {};
-
     if (species && species !== 'all') filter.species = species;
     if (status) filter.status = status;
     else filter.status = { $in: ['available', 'pending'] };
@@ -25,13 +31,8 @@ router.get('/', async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    res.json({
-      success: true,
-      adoptions,
-      pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) },
-    });
+    res.json({ success: true, adoptions, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -74,19 +75,16 @@ router.get('/:id', async (req, res) => {
     const adoption = await Adoption.findById(req.params.id)
       .populate('poster', 'name avatar email phone address bio createdAt')
       .populate('requests.requester', 'name avatar email');
-
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
-
     adoption.views += 1;
     await adoption.save();
-
     res.json({ success: true, adoption });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// @POST /api/adoptions - Create adoption post
+// @POST /api/adoptions
 router.post('/', protect, async (req, res) => {
   try {
     const adoptionData = { ...req.body, poster: req.user._id };
@@ -94,20 +92,18 @@ router.post('/', protect, async (req, res) => {
     await adoption.populate('poster', 'name avatar email');
     res.status(201).json({ success: true, message: 'Adoption post created!', adoption });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
 
-// @PUT /api/adoptions/:id - Update adoption post
+// @PUT /api/adoptions/:id
 router.put('/:id', protect, async (req, res) => {
   try {
     const adoption = await Adoption.findById(req.params.id);
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
-    if (adoption.poster.toString() !== req.user._id.toString()) {
+    if (adoption.poster.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
-
     const updated = await Adoption.findByIdAndUpdate(req.params.id, req.body, { new: true })
       .populate('poster', 'name avatar email');
     res.json({ success: true, adoption: updated });
@@ -119,11 +115,24 @@ router.put('/:id', protect, async (req, res) => {
 // @DELETE /api/adoptions/:id
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const adoption = await Adoption.findById(req.params.id);
+    const adoption = await Adoption.findById(req.params.id).populate('poster', 'name email');
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
-    if (adoption.poster.toString() !== req.user._id.toString()) {
+    if (adoption.poster._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+
+    // If admin is deleting someone else's post, notify the poster
+    const reason = req.body.reason || '';
+    if (req.user.role === 'admin' && adoption.poster._id.toString() !== req.user._id.toString()) {
+      const { sendPostRemovedEmail } = require('../config/email');
+      sendPostRemovedEmail({
+        userEmail: adoption.poster.email,
+        userName: adoption.poster.name,
+        animalName: adoption.animalName,
+        reason,
+      });
+    }
+
     await adoption.deleteOne();
     res.json({ success: true, message: 'Post deleted' });
   } catch (error) {
@@ -131,36 +140,39 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
-// @POST /api/adoptions/:id/request - Request to adopt
+// @POST /api/adoptions/:id/request
 router.post('/:id/request', protect, async (req, res) => {
   try {
-    const adoption = await Adoption.findById(req.params.id);
+    const adoption = await Adoption.findById(req.params.id).populate('poster', 'name email');
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
     if (adoption.status === 'adopted') return res.status(400).json({ success: false, message: 'Already adopted' });
-    if (adoption.poster.toString() === req.user._id.toString()) {
+    if (adoption.poster._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ success: false, message: 'Cannot request your own post' });
     }
-
     const existingRequest = adoption.requests.find(
       r => r.requester.toString() === req.user._id.toString()
     );
     if (existingRequest) return res.status(400).json({ success: false, message: 'Already requested' });
 
     const chatRoomId = `adoption_${adoption._id}_user_${req.user._id}`;
-
-    adoption.requests.push({
-      requester: req.user._id,
-      message: req.body.message || '',
-      chatRoomId,
-    });
+    adoption.requests.push({ requester: req.user._id, message: req.body.message || '', chatRoomId });
     await adoption.save();
 
-    // Create chat room
     await ChatRoom.create({
       roomId: chatRoomId,
       adoption: adoption._id,
-      poster: adoption.poster,
+      poster: adoption.poster._id,
       requester: req.user._id,
+    });
+
+    // Notify the poster by email
+    sendAdoptionRequestEmail({
+      posterEmail: adoption.poster.email,
+      posterName: adoption.poster.name,
+      requesterName: req.user.name,
+      animalName: adoption.animalName,
+      message: req.body.message || '',
+      adoptionId: adoption._id,
     });
 
     res.json({ success: true, message: 'Adoption request sent!', chatRoomId });
@@ -173,16 +185,16 @@ router.post('/:id/request', protect, async (req, res) => {
 // @PUT /api/adoptions/:id/request/:requestId/respond
 router.put('/:id/request/:requestId/respond', protect, async (req, res) => {
   try {
-    const adoption = await Adoption.findById(req.params.id);
+    const adoption = await Adoption.findById(req.params.id).populate('poster', 'name email');
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
-    if (adoption.poster.toString() !== req.user._id.toString()) {
+    if (adoption.poster._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
     const request = adoption.requests.id(req.params.requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
 
-    const { action } = req.body; // 'accept' or 'reject'
+    const { action } = req.body;
     if (!['accept', 'reject'].includes(action)) {
       return res.status(400).json({ success: false, message: 'Invalid action' });
     }
@@ -192,7 +204,6 @@ router.put('/:id/request/:requestId/respond', protect, async (req, res) => {
 
     if (action === 'accept') {
       adoption.status = 'pending';
-      // Reject all other requests
       adoption.requests.forEach(r => {
         if (r._id.toString() !== request._id.toString() && r.status === 'pending') {
           r.status = 'rejected';
@@ -201,6 +212,28 @@ router.put('/:id/request/:requestId/respond', protect, async (req, res) => {
     }
 
     await adoption.save();
+
+    // Notify the requester by email
+    const requester = await User.findById(request.requester).select('name email');
+    if (requester) {
+      if (action === 'accept') {
+        sendRequestAcceptedEmail({
+          requesterEmail: requester.email,
+          requesterName: requester.name,
+          animalName: adoption.animalName,
+          posterName: adoption.poster.name,
+          chatRoomId: request.chatRoomId,
+        });
+      } else {
+        sendRequestRejectedEmail({
+          requesterEmail: requester.email,
+          requesterName: requester.name,
+          animalName: adoption.animalName,
+          posterName: adoption.poster.name,
+        });
+      }
+    }
+
     res.json({ success: true, message: `Request ${action}ed`, adoption });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -210,13 +243,30 @@ router.put('/:id/request/:requestId/respond', protect, async (req, res) => {
 // @PUT /api/adoptions/:id/complete
 router.put('/:id/complete', protect, async (req, res) => {
   try {
-    const adoption = await Adoption.findById(req.params.id);
+    const adoption = await Adoption.findById(req.params.id).populate('poster', 'name email');
     if (!adoption) return res.status(404).json({ success: false, message: 'Not found' });
-    if (adoption.poster.toString() !== req.user._id.toString()) {
+    if (adoption.poster._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+
     adoption.status = 'adopted';
     await adoption.save();
+
+    // Find accepted requester and notify both parties
+    const acceptedRequest = adoption.requests.find(r => r.status === 'accepted');
+    if (acceptedRequest) {
+      const requester = await User.findById(acceptedRequest.requester).select('name email');
+      if (requester) {
+        sendAdoptionCompleteEmail({
+          posterEmail: adoption.poster.email,
+          posterName: adoption.poster.name,
+          requesterEmail: requester.email,
+          requesterName: requester.name,
+          animalName: adoption.animalName,
+        });
+      }
+    }
+
     res.json({ success: true, message: 'Adoption marked as complete!', adoption });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });

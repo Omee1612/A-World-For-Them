@@ -12,6 +12,7 @@ const vetRoutes = require('./routes/vet');
 const chatRoutes = require('./routes/chat');
 const userRoutes = require('./routes/user');
 const uploadRoutes = require('./routes/upload');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const server = http.createServer(app);
@@ -40,6 +41,7 @@ app.use('/api/vet', vetRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'StrayPaws API running' }));

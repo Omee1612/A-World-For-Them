@@ -49,6 +49,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
+  banReason: {
+    type: String,
+    default: '',
+  },
   adoptionsPosted: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Adoption',

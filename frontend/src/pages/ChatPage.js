@@ -48,19 +48,22 @@ const ChatPage = () => {
     api.get('/chat/my-rooms').then(res => setMyRooms(res.data.rooms)).catch(() => {});
   }, [roomId, navigate]);
 
-  // Socket.IO
+  // Socket.IO — connect to backend port 5000, not React's port 3000
   useEffect(() => {
     if (!user) return;
-    socket = io('/', { transports:['websocket', 'polling'], withCredentials:true });
+    socket = io('http://localhost:5000', { transports: ['websocket', 'polling'], withCredentials: true });
 
     socket.on('connect', () => {
       socket.emit('join_room', { roomId, userId: user._id });
     });
 
     socket.on('receive_message', (msg) => {
+      // Only add if it's from someone else — our own messages are handled
+      // directly via the API response to avoid duplicates
       setMessages(prev => {
-        // Avoid duplicates
         if (prev.some(m => m._id === msg._id)) return prev;
+        const senderId = msg.sender?._id?.toString() || msg.sender?.toString() || msg.senderId?.toString();
+        if (senderId === user._id.toString()) return prev;
         return [...prev, msg];
       });
       setTypingUser('');
@@ -81,12 +84,13 @@ const ChatPage = () => {
   const sendMessage = useCallback(async () => {
     if (!input.trim() || sending) return;
     const msgText = input.trim();
+    const tempId = `temp_${Date.now()}`;
     setInput('');
     setSending(true);
 
-    // Optimistic update
+    // Optimistic update — show immediately while API call is in flight
     const tempMsg = {
-      _id: `temp_${Date.now()}`,
+      _id: tempId,
       message: msgText,
       sender: { _id: user._id, name: user.name, avatar: user.avatar },
       senderId: user._id,
@@ -96,14 +100,21 @@ const ChatPage = () => {
     };
     setMessages(prev => [...prev, tempMsg]);
 
-    // Emit via socket
+    // Emit via socket so the OTHER user sees it in real time
     socket?.emit('send_message', { roomId, message: msgText, senderId: user._id, senderName: user.name, timestamp: new Date() });
 
     try {
-      await api.post(`/chat/${roomId}/message`, { message: msgText });
+      const res = await api.post(`/chat/${roomId}/message`, { message: msgText });
+      const savedMsg = res.data.message;
+      // Replace the temp message with the real saved one
+      setMessages(prev => prev.map(m => m._id === tempId
+        ? { ...savedMsg, sender: { _id: user._id, name: user.name, avatar: user.avatar }, isTemp: false }
+        : m
+      ));
     } catch (err) {
       toast.error('Failed to send message');
-      setMessages(prev => prev.filter(m => m._id !== tempMsg._id));
+      // Remove the temp message on failure
+      setMessages(prev => prev.filter(m => m._id !== tempId));
     } finally {
       setSending(false);
       inputRef.current?.focus();

@@ -70,7 +70,7 @@ const Navbar = () => {
           }}>🐾</div>
           <div>
             <span style={{ fontFamily:'Playfair Display, serif', fontWeight: 700, fontSize:'1.25rem', color: 'var(--charcoal)' }}>
-              Stray<span style={{ color: 'var(--terracotta)' }}>Paws</span>
+              A World<span style={{ color: 'var(--terracotta)' }}> For Them</span>
             </span>
             <div style={{ fontSize:'0.65rem', color:'var(--slate)', letterSpacing:'0.08em', textTransform:'uppercase', marginTop:-2 }}>
               Find a Home · Give a Home
@@ -143,6 +143,7 @@ const Navbar = () => {
                       { path:'/dashboard', label:'My Dashboard', icon:'📊' },
                       { path:'/adopt', label:'Browse Adoptions', icon:'🐾' },
                       { path:'/vet-care', label:'Vet Care', icon:'🏥' },
+                      ...(user.role === 'admin' ? [{ path:'/admin', label:'Admin Panel', icon:'🛡️' }] : []),
                     ].map(item => (
                       <Link key={item.path} to={item.path} style={{
                         display:'flex', alignItems:'center', gap:10,

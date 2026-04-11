@@ -32,7 +32,9 @@ const AdminDashboard = () => {
   const [removeModal, setRemoveModal] = useState(null); // { adoptionId, animalName }
   const [removeReason, setRemoveReason] = useState('');
 
-const fetchStats = useCallback(async () => {
+ 
+
+  const fetchStats = useCallback(async () => {
     const res = await api.get('/admin/stats');
     setStats(res.data.stats);
   }, []);
@@ -80,7 +82,7 @@ const fetchStats = useCallback(async () => {
       return () => clearTimeout(t);
     }
   }, [search, tab, fetchUsers]);
-
+if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
   // ── Actions ────────────────────────────────────────────────────────────────
 
   const handleBan = async () => {

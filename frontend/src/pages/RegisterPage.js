@@ -41,7 +41,7 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       await register(form.name, form.email, form.password, form.phone);
-      toast.success('Welcome to StrayPaws! 🐾');
+      toast.success('Welcome to A World For Them! 🐾');
       navigate('/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed';
@@ -80,7 +80,7 @@ const RegisterPage = () => {
       <div className="fade-in" style={{ width:'100%', maxWidth:460 }}>
         <div style={{ textAlign:'center', marginBottom:32 }}>
           <div style={{ width:56, height:56, background:'linear-gradient(135deg, var(--forest), var(--forest-light))', borderRadius:16, margin:'0 auto 12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, boxShadow:'0 4px 16px rgba(61,107,79,0.3)' }}>🐾</div>
-          <h1 style={{ fontSize:'1.75rem', marginBottom:6 }}>Join StrayPaws</h1>
+          <h1 style={{ fontSize:'1.75rem', marginBottom:6 }}>Join A World For Them</h1>
           <p style={{ color:'var(--slate)', fontSize:'0.9rem' }}>Help stray animals find their forever home</p>
         </div>
 

@@ -17,6 +17,7 @@ router.get('/my-rooms', protect, async (req, res) => {
 
     res.json({ success: true, rooms });
   } catch (error) {
+    console.error('my-rooms error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -32,17 +33,17 @@ router.get('/:roomId', protect, async (req, res) => {
 
     if (!room) return res.status(404).json({ success: false, message: 'Chat room not found' });
 
-    const isParticipant =
-      room.poster._id.toString() === req.user._id.toString() ||
-      room.requester._id.toString() === req.user._id.toString();
+    const posterId    = room.poster?._id?.toString()    || room.poster?.toString();
+    const requesterId = room.requester?._id?.toString() || room.requester?.toString();
+    const userId      = req.user._id.toString();
 
-    if (!isParticipant) {
+    if (posterId !== userId && requesterId !== userId) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
     // Mark messages as read
     room.messages.forEach(msg => {
-      if (!msg.readBy.includes(req.user._id)) {
+      if (!msg.readBy.map(id => id.toString()).includes(userId)) {
         msg.readBy.push(req.user._id);
       }
     });
@@ -50,7 +51,8 @@ router.get('/:roomId', protect, async (req, res) => {
 
     res.json({ success: true, room });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('get chat error:', error);
+    res.status(500).json({ success: false, message: 'Server error', detail: error.message });
   }
 });
 
@@ -58,15 +60,20 @@ router.get('/:roomId', protect, async (req, res) => {
 router.post('/:roomId/message', protect, async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message?.trim()) return res.status(400).json({ success: false, message: 'Message required' });
+    if (!message?.trim()) {
+      return res.status(400).json({ success: false, message: 'Message required' });
+    }
 
     const room = await ChatRoom.findOne({ roomId: req.params.roomId });
     if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
 
-    const isParticipant =
-      room.poster.toString() === req.user._id.toString() ||
-      room.requester.toString() === req.user._id.toString();
-    if (!isParticipant) return res.status(403).json({ success: false, message: 'Not authorized' });
+    const posterId    = room.poster?.toString();
+    const requesterId = room.requester?.toString();
+    const userId      = req.user._id.toString();
+
+    if (posterId !== userId && requesterId !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
 
     const newMessage = {
       sender: req.user._id,
@@ -82,7 +89,7 @@ router.post('/:roomId/message', protect, async (req, res) => {
 
     const savedMsg = room.messages[room.messages.length - 1];
 
-    // Emit via Socket.IO
+    // Emit via Socket.IO to the other participant
     const io = req.app.get('io');
     if (io) {
       io.to(req.params.roomId).emit('receive_message', {
@@ -93,7 +100,8 @@ router.post('/:roomId/message', protect, async (req, res) => {
 
     res.json({ success: true, message: savedMsg });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('send message error:', error);
+    res.status(500).json({ success: false, message: 'Server error', detail: error.message });
   }
 });
 

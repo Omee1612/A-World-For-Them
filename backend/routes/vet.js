@@ -1,25 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const VetAppointment = require('../models/VetAppointment');
-const { protect, authorize } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
+const { sendAppointmentConfirmationEmail, sendAppointmentCancelledEmail } = require('../config/email');
 
 const SERVICES = {
-  'general-checkup': { name: 'General Checkup', duration: 30, fee: 500 },
-  'vaccination': { name: 'Vaccination', duration: 20, fee: 800 },
-  'neutering-spaying': { name: 'Neutering/Spaying', duration: 120, fee: 3500 },
-  'dental-care': { name: 'Dental Care', duration: 60, fee: 1500 },
-  'emergency': { name: 'Emergency Care', duration: 60, fee: 2000 },
-  'microchipping': { name: 'Microchipping', duration: 15, fee: 600 },
-  'deworming': { name: 'Deworming', duration: 15, fee: 400 },
-  'skin-treatment': { name: 'Skin Treatment', duration: 45, fee: 1200 },
-  'nutrition-consult': { name: 'Nutrition Consultation', duration: 30, fee: 700 },
-  'post-adoption-checkup': { name: 'Post-Adoption Checkup', duration: 30, fee: 400 },
+  'general-checkup':      { name: 'General Checkup', duration: 30, fee: 500 },
+  'vaccination':          { name: 'Vaccination', duration: 20, fee: 800 },
+  'neutering-spaying':    { name: 'Neutering/Spaying', duration: 120, fee: 3500 },
+  'dental-care':          { name: 'Dental Care', duration: 60, fee: 1500 },
+  'emergency':            { name: 'Emergency Care', duration: 60, fee: 2000 },
+  'microchipping':        { name: 'Microchipping', duration: 15, fee: 600 },
+  'deworming':            { name: 'Deworming', duration: 15, fee: 400 },
+  'skin-treatment':       { name: 'Skin Treatment', duration: 45, fee: 1200 },
+  'nutrition-consult':    { name: 'Nutrition Consultation', duration: 30, fee: 700 },
+  'post-adoption-checkup':{ name: 'Post-Adoption Checkup', duration: 30, fee: 400 },
 };
 
 const VETS = [
-  { name: 'Dr. Anika Rahman', speciality: 'General Practice', available: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
-  { name: 'Dr. Sharif Hossain', speciality: 'Surgery', available: ['Mon', 'Wed', 'Thu', 'Sat'] },
-  { name: 'Dr. Priya Das', speciality: 'Exotic Animals', available: ['Tue', 'Thu', 'Fri', 'Sat'] },
+  { name: 'Dr. Anika Rahman', speciality: 'General Practice' },
+  { name: 'Dr. Sharif Hossain', speciality: 'Surgery' },
+  { name: 'Dr. Priya Das', speciality: 'Exotic Animals' },
 ];
 
 // @GET /api/vet/services
@@ -32,21 +33,16 @@ router.get('/available-slots', async (req, res) => {
   try {
     const { date } = req.query;
     if (!date) return res.status(400).json({ success: false, message: 'Date required' });
-
-    const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+    const slots = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30'];
     const targetDate = new Date(date);
-    const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
-
+    const startOfDay = new Date(targetDate.setHours(0,0,0,0));
+    const endOfDay   = new Date(targetDate.setHours(23,59,59,999));
     const booked = await VetAppointment.find({
       appointmentDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $nin: ['cancelled'] },
     }).select('timeSlot');
-
     const bookedSlots = booked.map(a => a.timeSlot);
-    const available = slots.filter(s => !bookedSlots.includes(s));
-
-    res.json({ success: true, slots: available, totalBooked: bookedSlots.length });
+    res.json({ success: true, slots: slots.filter(s => !bookedSlots.includes(s)) });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
@@ -55,8 +51,7 @@ router.get('/available-slots', async (req, res) => {
 // @GET /api/vet/my-appointments
 router.get('/my-appointments', protect, async (req, res) => {
   try {
-    const appointments = await VetAppointment.find({ owner: req.user._id })
-      .sort({ appointmentDate: -1 });
+    const appointments = await VetAppointment.find({ owner: req.user._id }).sort({ appointmentDate: -1 });
     res.json({ success: true, appointments });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -67,46 +62,49 @@ router.get('/my-appointments', protect, async (req, res) => {
 router.post('/book', protect, async (req, res) => {
   try {
     const { animalName, species, breed, age, serviceType, appointmentDate, timeSlot, notes, isStray } = req.body;
-
     if (!animalName || !species || !serviceType || !appointmentDate || !timeSlot) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    // Check slot availability
+    // Check slot still available
     const existing = await VetAppointment.findOne({
       appointmentDate: new Date(appointmentDate),
       timeSlot,
       status: { $nin: ['cancelled'] },
     });
-    if (existing) {
-      return res.status(400).json({ success: false, message: 'Time slot already booked' });
-    }
+    if (existing) return res.status(400).json({ success: false, message: 'Time slot already booked' });
 
     const serviceInfo = SERVICES[serviceType];
-    const vetIndex = Math.floor(Math.random() * VETS.length);
+    const vet = VETS[Math.floor(Math.random() * VETS.length)].name;
 
     const appointment = await VetAppointment.create({
       owner: req.user._id,
-      animalName,
-      species,
+      animalName, species,
       breed: breed || 'Unknown',
       age: age || { value: 1, unit: 'years' },
       serviceType,
       appointmentDate: new Date(appointmentDate),
-      timeSlot,
-      vet: VETS[vetIndex].name,
+      timeSlot, vet,
       notes: notes || '',
       isStray: isStray || false,
       fee: serviceInfo ? serviceInfo.fee : 0,
     });
 
-    res.status(201).json({
-      success: true,
-      message: `Appointment booked with ${VETS[vetIndex].name}!`,
-      appointment,
+    // Send confirmation email
+    sendAppointmentConfirmationEmail({
+      userEmail: req.user.email,
+      userName: req.user.name,
+      animalName,
+      serviceType,
+      appointmentDate,
+      timeSlot,
+      vet,
+      fee: serviceInfo ? serviceInfo.fee : 0,
+      appointmentId: appointment._id,
     });
+
+    res.status(201).json({ success: true, message: `Appointment booked with ${vet}!`, appointment });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
@@ -116,11 +114,21 @@ router.put('/:id/cancel', protect, async (req, res) => {
   try {
     const appointment = await VetAppointment.findById(req.params.id);
     if (!appointment) return res.status(404).json({ success: false, message: 'Not found' });
-    if (appointment.owner.toString() !== req.user._id.toString()) {
+    if (appointment.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     appointment.status = 'cancelled';
     await appointment.save();
+
+    // Send cancellation email
+    sendAppointmentCancelledEmail({
+      userEmail: req.user.email,
+      userName: req.user.name,
+      animalName: appointment.animalName,
+      appointmentDate: appointment.appointmentDate,
+      timeSlot: appointment.timeSlot,
+    });
+
     res.json({ success: true, message: 'Appointment cancelled', appointment });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });

@@ -262,7 +262,7 @@ const VetCarePage = () => {
               <div className="card" style={{ padding:24, background:'#fff8e1', border:'1px solid #ffe082' }}>
                 <h4 style={{ marginBottom:8, color:'#e65100' }}>📍 Clinic Info</h4>
                 <p style={{ fontSize:'0.875rem', color:'var(--charcoal)', lineHeight:1.7 }}>
-                  <strong>StrayPaws Vet Center</strong><br />
+                  <strong>A World For Them Vet Center</strong><br />
                   Road 4, Dhanmondi<br />
                   Dhaka 1205, Bangladesh<br />
                   📞 +880 1700-000000<br />
